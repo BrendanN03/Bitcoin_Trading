@@ -22,3 +22,28 @@ Bitcoin).
 - People interested in cryptocurrency.
 - People interested in trading and investment strategies.
 - People who want to learn more about market dynamics affecting cryptocurrency values.
+
+## Directories
+**/server**: This folder contains application files and dependencies for the backend server
+- config.json (not included): Holds the RDS connection credentials/information and application configuration settings
+- package-lock.json: Saves the exact version of each package in the application dependency tree for installs and maintenance
+- package.json: maintains the project dependency tree; defines project properties, scripts, etc.
+- routes.js: Contains handler functions for the API routes
+- server.js: Has the code for the routed HTTP application (backend server)
+<br><br>
+
+**/client**: This folder contains application files and dependencies for the client React application
+- package-lock.json: Saves the exact version of each package in the application dependency tree for installs and maintenance
+- package.json: maintains the project dependency tree; defines project properties, scripts, etc.
+<br><br>
+
+**/client/public**: This folder contains static files
+- index.html: Specifies the base HTML, containing basic metadata
+<br><br>
+
+**/client/src**: This folder contains main source code for the React application
+- **/pages**: This folder contains for React components corresponding to the pages in the application
+	- placeholder
+- App.js: Holds the root component of the React application
+- config.json: Holds backend server connection information
+- index.js: Serves as the main JavaScript entry point to the application and stores the main DOM render call in React
