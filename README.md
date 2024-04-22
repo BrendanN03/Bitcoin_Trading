@@ -1,7 +1,7 @@
 # Bitcoin Trading Game README
 ## Description
-Our application will be a high frequency Bitcoin trading game where the user starts with a set amount of bitcoin (and
-USD) and then is presented the opportunity to buy or sell any amount of Bitcoin every minute. The user will have the
+Our application will be a high frequency Bitcoin trading game where the user starts with $100,000 (in
+USD) and then is presented the opportunity to buy or sell any feasible amount of Bitcoin every minute. The user will have the
 choice to skip ahead in time (to essentially not buy or sell for that time), and they will be provided with the given day’s
 tweets (up to the current time) relating to Bitcoin as hints or indications to buy or sell. The goal will be to maximize
 the value of the user’s total Bitcoin/USD holdings by the end of the game. The target audience is individuals interested
