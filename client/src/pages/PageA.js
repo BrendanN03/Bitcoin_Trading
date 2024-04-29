@@ -1,10 +1,35 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
+import { LineChart, Line, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 
 const config = require('../config.json');
 
 export default function PageA() {
+	const [balance, setBalance] = useState(100000);
+	const [quantity, setQuantity] = useState(1);
+	const [isBuying, setIsBuying] = useState(true);
+
 	const [loggedUser, setLoggedUser] = useState(null);
+	const [chartData, setChartData] = useState({});
+	const [date, setDate] = useState(null);
+
+	const [someTweets, setSomeTweets] = useState(null); // TODO: figure out the correct default value
+	
+
+	const handleTransaction = () => {
+		const totalCost = quantity * 10;
+		const totalEarned = quantity * 10;
+
+		if (isBuying) {
+		setBalance(prevBalance => prevBalance - totalCost);
+		} else {
+		setBalance(prevBalance => prevBalance + totalEarned);
+		}
+	};
+
+	const handleQuantityChange = (event) => {
+		setQuantity(parseInt(event.target.value));
+	};
 
 	useEffect(() => {
 		// see if we can authorize via cookie, in a dollar store way
@@ -19,6 +44,26 @@ export default function PageA() {
 			})
 			.then(resJson => setLoggedUser(resJson.user), _ => {});
 
+		// get some tweets in a day
+		// TODO: update route to handle limit
+		const zzz_datetime = '2021-10-15 22:03:25'; // TODO: get a better name or a real source for datetime
+		fetch(`http://${config.server_host}:${config.server_port}/day_tweets/${zzz_datetime}`)
+			.then(res => res.json()) // TODO: may handle status code 500
+			.then(resJson => {
+				setSomeTweets(resJson.map(({ name, verified, date, text }) => {
+					const v = verified ? '(Verified)' : '(Unverified)';
+					return <li>from {name} {v} on {date}: {text}</li>;
+				}));
+			});
+
+		fetch(`http://${config.server_host}:${config.server_port}/monthly-summary`)
+			.then(res => res.json())
+			.then(data => {
+				setChartData(data.map(item => ({
+					month: item.month,
+					avgClose: item.avg_close,
+				})));
+			});
 	}, []);
 
 	// handle registering account
@@ -88,7 +133,6 @@ export default function PageA() {
 				} else if (res.status === 200) {
 					loginMsgElt.innerHTML = 'Login successful';
 					setLoggedUser(username);
-					// window.location.reload();
 				} else {
 					console.log('loginSubmit: what happened here');
 					throw new Error('what happen');
@@ -99,12 +143,27 @@ export default function PageA() {
 
 	// handle account logout
 	const logout = (e) => {
-		console.log('logout pressed but it does not do anything yet');
+		fetch(`http://${config.server_host}:${config.server_port}/logout`, { credentials: 'include' });
+		setLoggedUser(null);
 	}
 
 	return (
 		<>
 			<Link to='/b'>go to page b</Link>
+            {/* Forms and user interaction components */}
+            <div style={{ width: '100%', height: 300 }}>
+                <ResponsiveContainer>
+                    <LineChart data={chartData}>
+						<XAxis dataKey="date" />
+                    	<YAxis type="number" domain={['auto', 'auto']} />
+                    	<Tooltip />
+                    	<Legend />
+                        <Line type="monotone" dataKey="price" stroke="#8884d8" />
+                    </LineChart>
+                </ResponsiveContainer>
+            </div>
+
+			<ul id='someTweetsList'>{someTweets}</ul>
 
 			{/* register and submit might as well go on a separate page */}
 			<form onSubmit={registerSubmit}>
@@ -131,6 +190,33 @@ export default function PageA() {
 					   :
 				null
 			}
+			
+			{/* BN */}
+			<div>
+				<div>
+					<button onClick={() => { setIsBuying(true); }}>Buy</button>
+					<button onClick={() => { setIsBuying(false); }}>Sell</button>
+					<input
+					type="range"
+					min="1"
+					max="100"
+					value={quantity}
+					onChange={handleQuantityChange}
+					/>
+					<input
+					type="number"
+					min="1"
+					max="100"
+					value={quantity}
+					onChange={handleQuantityChange}
+					/>
+				</div>
+				<div>
+					<label htmlFor="balance">Current Balance:</label>
+					<input type="text" id="balance" value={balance} readOnly />
+				</div>
+				<button onClick={handleTransaction}>{isBuying ? 'Buy' : 'Sell'}</button>
+			</div>
 		</>
 	);
 }
