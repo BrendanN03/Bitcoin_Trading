@@ -1,0 +1,9 @@
+{
+  "rds_host": "bigman.crnhul8lo6k6.us-east-1.rds.amazonaws.com",
+  "rds_port": "3306",
+  "rds_user": "C5500PG70Master",
+  "rds_password": "h8A5k$Bsd#3!!+joe",
+  "rds_db": "project",
+  "server_host": "localhost",
+  "server_port": "8080"
+}
