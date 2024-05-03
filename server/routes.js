@@ -36,7 +36,7 @@ const trends = async function (req, res) {
 
 	const interval = req.query.interval ?? 'week';
 	const orderFlag = req.query.order ?? 1;
-	const order = orderFlag ? '' : ' DESC';
+	const order = orderFlag ? 'ASC' : 'DESC';
 
 	connection.query(`
 		WITH influential_user_predictions_up AS (
@@ -68,7 +68,7 @@ const trends = async function (req, res) {
 		JOIN influential_user_predictions_up iupu ON ts.hour = iupu.predicted_hour
 		JOIN influential_user_predictions_down iupd ON ts.hour = iupd.predicted_hour
 		JOIN trading_volume tv ON ts.hour = tv.hour
-		ORDER BY ts.hour${order};
+		ORDER BY ts.hour ${order};
 	`, (err, data) => {
 		if (err) {
 			console.log(err);
@@ -232,17 +232,20 @@ const topWeeks = async function (req, res) {
 
 // Query 5
 const dayTweets = async function (req, res) {
-	console.log(`[dayTweets] datetime: ${req.params.datetime}`);
-
+	console.log(`[dayTweets] datetime: ${req.params.datetime} query params: ${JSON.stringify(req.query)}`);
+	
 	// TODO: might have to convert from url encoding to regular string
 	const input_datetime = req.params.datetime;
+	let limit = req.query.limit ?? 10;
+	limit = limit < 0 ? 999999 : limit;
 
 	connection.query(`
 		SELECT bt.user_name, bt.user_verified, bt.date, bt.text
 		FROM bitcoin_tweets bt
 		WHERE DATE(bt.date) = DATE('${input_datetime}') AND
 			  bt.date < '${input_datetime}'
-		ORDER BY bt.date DESC;
+		ORDER BY bt.date DESC
+		LIMIT ${limit};
 	`, (err, data) => {
 		if (err) {
 			console.log(err);
@@ -291,7 +294,10 @@ const fluctuations = async function (req, res) {
 
 // Query 7
 const tweetActivity = async function (req, res) {
-	console.log(`[tweetActivity]`);
+	console.log(`[tweetActivity] query params: ${JSON.stringify(req.query)}`);
+
+	const interval = req.query.interval ?? null;
+	// TODO: where clause
 
 	connection.query(`
 		SELECT
