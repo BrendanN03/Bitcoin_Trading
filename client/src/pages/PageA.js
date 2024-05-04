@@ -1,3 +1,4 @@
+import  '../styles.css';
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { LineChart, Line, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer } from 'recharts';
@@ -19,13 +20,13 @@ export default function PageA() {
 	const handleTransaction = () => {
 		const totalCost = quantity * 10;
 		const totalEarned = quantity * 10;
-
+	
 		if (isBuying) {
-		setBalance(prevBalance => prevBalance - totalCost);
+			setBalance(prevBalance => prevBalance - totalCost);
 		} else {
-		setBalance(prevBalance => prevBalance + totalEarned);
+			setBalance(prevBalance => prevBalance + totalEarned);
 		}
-	};
+	};	
 
 	const handleQuantityChange = (event) => {
 		setQuantity(parseInt(event.target.value));
@@ -149,7 +150,10 @@ export default function PageA() {
 
 	return (
 		<>
-			<Link to='/b'>go to page b</Link>
+			<div className="headerContainer">
+				<Link to='/b' className="buttonLink">Page B</Link>
+			</div>
+
             {/* Forms and user interaction components */}
             <div style={{ width: '100%', height: 300 }}>
                 <ResponsiveContainer>
@@ -164,22 +168,56 @@ export default function PageA() {
             </div>
 
 			<ul id='someTweetsList'>{someTweets}</ul>
+			
+			{/* BN */}
+			<div className="transaction-container">
+				<div>
+					<button onClick={() => { setIsBuying(true); handleTransaction();}} className="buyButton">Buy</button>
+					<button onClick={() => { setIsBuying(false); handleTransaction();}} className="sellButton">Sell</button>
+
+					<input
+						type="range"
+						min="1"
+						max="100"
+						value={quantity}
+						onChange={handleQuantityChange}
+					/>
+					<input
+						type="number"
+						min="1"
+						max="100"
+						value={quantity}
+						onChange={handleQuantityChange}
+					/>
+				</div>
+				<div>
+					<label htmlFor="balance">Current Balance:</label>
+					<input type="text" id="balance" value={balance} readOnly />
+				</div>
+			</div>
 
 			{/* register and submit might as well go on a separate page */}
-			<form onSubmit={registerSubmit}>
-				<input id='register_username' type='text' name='username' placeholder='Username' minLength='5' maxLength='10' required />
-				<input id='register_password' type='password' name='password' placeholder='Password' minLength='5' maxLength='15' required />
-				<input id='register_password_confirm' type='password' name='password_confirm' placeholder='Confirm Password' minLength='5' maxLength='15' required />
-				<button type='submit'>Register</button>
-				<span id='register_msg' />
-			</form>
-			
-			<form onSubmit={loginSubmit}>
-				<input id='login_username' type='text' name='username' placeholder='Username' minLength='5' maxLength='10' required />
-				<input id='login_password' type='password' name='password' placeholder='Password' minLength='5' maxLength='15' required />
-				<button type='submit'>Login</button>
-				<span id='login_msg' />
-			</form>
+			<div className="auth-container">
+				<div className="register-form">
+					<form onSubmit={registerSubmit}>
+						<input id='register_username' type='text' name='username' placeholder='Username' minLength='5' maxLength='10' required />
+						<input id='register_password' type='password' name='password' placeholder='Password' minLength='5' maxLength='15' required />
+						<input id='register_password_confirm' type='password' name='password_confirm' placeholder='Confirm Password' minLength='5' maxLength='15' required />
+						<button type='submit'>Register</button>
+						<span id='register_msg' />
+					</form>
+				</div>
+
+				<div className="login-form">
+					<form onSubmit={loginSubmit}>
+						<input id='login_username' type='text' name='username' placeholder='Username' minLength='5' maxLength='10' required />
+						<input id='login_password' type='password' name='password' placeholder='Password' minLength='5' maxLength='15' required />
+						<button type='submit'>Login</button>
+						<span id='login_msg' />
+					</form>
+				</div>
+			</div>
+
 
 			{
 			loggedUser ?
@@ -190,33 +228,6 @@ export default function PageA() {
 					   :
 				null
 			}
-			
-			{/* BN */}
-			<div>
-				<div>
-					<button onClick={() => { setIsBuying(true); }}>Buy</button>
-					<button onClick={() => { setIsBuying(false); }}>Sell</button>
-					<input
-					type="range"
-					min="1"
-					max="100"
-					value={quantity}
-					onChange={handleQuantityChange}
-					/>
-					<input
-					type="number"
-					min="1"
-					max="100"
-					value={quantity}
-					onChange={handleQuantityChange}
-					/>
-				</div>
-				<div>
-					<label htmlFor="balance">Current Balance:</label>
-					<input type="text" id="balance" value={balance} readOnly />
-				</div>
-				<button onClick={handleTransaction}>{isBuying ? 'Buy' : 'Sell'}</button>
-			</div>
 		</>
 	);
 }
