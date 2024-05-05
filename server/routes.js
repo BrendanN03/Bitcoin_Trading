@@ -50,13 +50,6 @@ const trends = async function (req, res) {
 				iupds.predicted_hour,
 				iupds.${interval}_pred_down AS pred_down
 			FROM influential_user_predictions_downs iupds
-		),
-		trading_volume AS (
-			SELECT
-				DATE_FORMAT(bp.date, '%Y-%m-%d %H:00:00') AS hour,
-				SUM(bp.volume_usd) AS total_trading_volume
-			FROM bitcoin_prices bp
-			GROUP BY hour
 		)
 		SELECT
 			ts.hour,
