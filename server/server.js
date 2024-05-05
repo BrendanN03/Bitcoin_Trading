@@ -19,7 +19,7 @@ app.get('/special_days/:month', routes.specialDays);
 app.get('/top_weeks', routes.topWeeks);
 app.get('/day_tweets/:datetime', routes.dayTweets);
 app.get('/fluctuations', routes.fluctuations);
-app.get('/tweet_activity', routes.tweetActivity);
+app.get('/tweet_activity/:date', routes.tweetActivity);
 app.get('/past_info/:date', routes.pastInfo);
 app.get('/total_traded/:user', routes.totalTraded);
 app.get('/total_holdings/:date', routes.totalHoldings);

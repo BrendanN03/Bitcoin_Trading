@@ -274,8 +274,7 @@ const fluctuations = async function (req, res) {
 const tweetActivity = async function (req, res) {
 	console.log(`[tweetActivity] query params: ${JSON.stringify(req.query)}`);
 
-	const interval = req.query.interval ?? null;
-	// TODO: where clause
+	const input_date = req.params.date;
 
 	connection.query(`
 		SELECT
@@ -284,11 +283,11 @@ const tweetActivity = async function (req, res) {
 			COUNT(DISTINCT bt.user_name) AS unique_users,
 			SUM(bt.user_verified) AS verified_tweets,
 			COUNT(DISTINCT
-				  CASE
-					  WHEN bt.user_followers > 10000 THEN bt.user_name
-				  END) AS influential_users
+				CASE
+					WHEN bt.user_followers > 10000 THEN bt.user_name
+				END) AS influential_users
 		FROM bitcoin_tweets bt
-		GROUP BY day;
+		WHERE DATE(bt.date) = '${input_date}';
 	`, (err, data) => {
 		if (err) {
 			console.log(err);
