@@ -78,21 +78,6 @@ const monthlySummary = async function (req, res) {
 	console.log(`[monthlySummary]`);
 
 	connection.query(`
-		WITH aggregated_bitcoin_data AS (
-			SELECT
-				DATE_FORMAT(bp.date, '%Y-%m') AS month,
-				AVG(bp.open) AS avg_open,
-				AVG(bp.close) AS avg_close
-			FROM bitcoin_prices bp
-			GROUP BY month
-		),
-		max_follower_tweets AS (
-			SELECT
-				DATE_FORMAT(bt.date, '%Y-%m') AS month,
-				MAX(bt.user_followers) AS max_followers
-			FROM bitcoin_tweets bt
-			GROUP BY month
-		)
 		SELECT
 			abd.month,
 			abd.avg_close,
