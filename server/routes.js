@@ -303,7 +303,7 @@ const pastInfo = async function (req, res) {
 	console.log(`[pastInfo] date: ${req.params.date}`);
 
 	// TODO: might have to convert from url encoded string to regular string
-	const input_date = req.params.date;
+	const input_datetime = req.params.date;
 
 	connection.query(`
 		SELECT
@@ -313,14 +313,19 @@ const pastInfo = async function (req, res) {
 			bt.text
 		FROM bitcoin_prices bp, bitcoin_tweets bt
 		WHERE
-			bp.date = '${input_date}' AND
-			bt.date <= bp.date;
+			bp.date = '${input_datetime}' AND
+			DATE(bt.date) = DATE('${input_datetime}') AND
+			bt.date <= bp.date
+		ORDER BY bt.date DESC
+		LIMIT 1000;
 	`, (err, data) => {
 		if (err) {
 			console.log(err);
 			res.status(500).json({});
 		} else {
+			console.log('aaa');
 			res.status(200).json(data);
+			console.log('bruh');
 		}
 	});
 }
