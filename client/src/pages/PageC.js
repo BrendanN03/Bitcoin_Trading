@@ -1,11 +1,14 @@
 import  '../styles.css';
+import React, { useContext } from 'react';
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
+import { DateTimeContext } from '../components/commonDate';
 
 const config = require('../config.json');
 
-export default function PageC() {
+export default function PageC(props) {
 	const [loggedUser, setLoggedUser] = useState(null);
+	const { currentDateTime, setCurrentDateTime } = useContext(DateTimeContext);
 
 	useEffect(() => {
 		fetch(`http://${config.server_host}:${config.server_port}/session`, { credentials: 'include' })
@@ -17,23 +20,6 @@ export default function PageC() {
 				return res.json();
 			})
 			.then(resJson => setLoggedUser(resJson.user), _ => {});
-		
-			const zzz_datetime = '2021-11-26%2023:59:00'; // TODO: get a better name or a real source for datetime
-			fetch(`http://${config.server_host}:${config.server_port}/day_tweets/${zzz_datetime}`)
-				.then(res => res.json()) // TODO: may handle status code 500
-				.then(resJson => {
-					const listContainer = document.getElementById('tweet-list');
-					if (listContainer) {
-						listContainer.innerHTML = '';
-					}
-					resJson.forEach(tweet => {
-						const listItem = document.createElement('li');
-						listItem.textContent = `${tweet.user_name}: ${tweet.text}`;
-						if (listContainer) {
-							listContainer.appendChild(listItem);
-						}
-					});
-				});
 			
 			fetch(`http://${config.server_host}:${config.server_port}/monthly_summary`)
 				.then(res => res.json())
@@ -43,9 +29,9 @@ export default function PageC() {
 						listContainer.innerHTML = '';
 					}
 					resJson.forEach(summary => {
-						if (summary.month < zzz_datetime) {
+						if (summary.month < currentDateTime.toISOString().replace('T', ' ').replace('Z', '')) {
 							const listItem = document.createElement('li');
-							listItem.textContent = `Month: ${summary.month}, AVG_OPEN: ${summary.avg_open}, AVG_CLOSE: ${summary.avg_close}`;
+							listItem.textContent = `Month: ${summary.month}, AVG_OPEN: ${summary.avg_open}, AVG_CLOSE: ${summary.avg_close}, text: ${summary.tweet_text}`;
 							if (listContainer) {
 								listContainer.appendChild(listItem);
 							}
@@ -107,3 +93,28 @@ export default function PageC() {
 		</>
 	);
 }
+
+// #tweet-list {//
+//     list-style-type: none; /* Remove default list styling */
+//     padding: 0; /* Remove default padding */
+// }
+// #special-day-list {//
+//     list-style-type: none; /* Remove default list styling */
+//     padding: 0; /* Remove default padding */
+//     height: 1%;
+// }
+// #monthly-summary-list {
+//     list-style-type: none; /* Remove default list styling */
+//     padding: 0; /* Remove default padding */
+//     height: 1%;
+// }
+// #trends-list {//
+//     list-style-type: none; /* Remove default list styling */
+//     padding: 0; /* Remove default padding */
+//     height: 1%;
+// }
+// #top-weeks-list {
+//     list-style-type: none; /* Remove default list styling */
+//     padding: 0; /* Remove default padding */
+//     height: 1%;
+// }

@@ -29,8 +29,9 @@ function refreshCookieData(expiration, sid, res, finals) {
 
 // Query 1
 const trends = async function (req, res) {
-	console.log(`[trends] query params: ${JSON.stringify(req.query)}`);
+	console.log(`[trends] datetime: ${req.params.datetime} query params: ${JSON.stringify(req.query)}`);
 
+	const datetime = req.params.datetime
 	const interval = req.query.interval ?? 'week';
 	const orderFlag = req.query.order ?? 1;
 	const order = orderFlag ? 'ASC' : 'DESC';
@@ -60,6 +61,9 @@ const trends = async function (req, res) {
 		JOIN influential_user_predictions_up iupu ON ts.hour = iupu.predicted_hour
 		JOIN influential_user_predictions_down iupd ON ts.hour = iupd.predicted_hour
 		JOIN trading_volume tv ON ts.hour = tv.hour
+		WHERE
+			ts.hour <= '${datetime}' AND
+			ts.hour >= DATE_FORMAT(DATE_SUB('${datetime}', INTERVAL 10 HOUR), '%Y-%m-%d %H:00:00')
 		ORDER BY ts.hour ${order};
 	`, (err, data) => {
 		if (err) {
@@ -443,6 +447,9 @@ const login = async function (req, res) {
 		if (err) {
 			console.log(err);
 			res.sendStatus(500);
+			return;
+		} else if (data.length === 0) {
+			res.sendStatus(404);
 			return;
 		} else if (data[0].sid) {
 			// there is already a session for the user, so update it

@@ -4,7 +4,7 @@ import { Link } from 'react-router-dom';
 
 const config = require('../config.json');
 
-export default function PageC() {
+export default function PageD() {
 	const [loggedUser, setLoggedUser] = useState(null);
 
 	useEffect(() => {
@@ -29,6 +29,7 @@ export default function PageC() {
 				<Link to='/a' className="buttonLink">Page A</Link>
 				<Link to='/b' className="buttonLink">Page B</Link>
 				<Link to='/c' className="buttonLink">Page C</Link>
+				<Link to='/d' className="buttonLink">Page D</Link>
 			</div>
 
 			{

@@ -1,11 +1,14 @@
 import  '../styles.css';
+import React, { useContext } from 'react';
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
+import { DateTimeContext } from '../components/commonDate';
 
 const config = require('../config.json');
 
-export default function PageB() {
+export default function PageB(props) {
 	const [loggedUser, setLoggedUser] = useState(null);
+	const { currentDateTime, setCurrentDateTime } = useContext(DateTimeContext);
 
 	useEffect(() => {
 		fetch(`http://${config.server_host}:${config.server_port}/session`, { credentials: 'include' })
@@ -18,10 +21,8 @@ export default function PageB() {
 			})
 			.then(resJson => setLoggedUser(resJson.user), _ => {});
 		
-			const zzz_datetime = '2021-11-26%2023:59:00'; // TODO: get a better name or a real source for datetime
-			const month = '2021-11'; 
-			fetch(`http://${config.server_host}:${config.server_port}/day_tweets/${zzz_datetime}`)
-				.then(res => res.json()) // TODO: may handle status code 500
+			fetch(`http://${config.server_host}:${config.server_port}/day_tweets/${currentDateTime.toISOString().replace('T', '%').replace('Z', '')}`)
+				.then(res => res.json())
 				.then(resJson => {
 					const listContainer = document.getElementById('tweet-list');
 					if (listContainer) {
@@ -36,33 +37,33 @@ export default function PageB() {
 					});
 				});
 
-			fetch(`http://${config.server_host}:${config.server_port}/trends`)
+			fetch(`http://${config.server_host}:${config.server_port}/trends/${currentDateTime.toISOString().replace('T', '%20').replace('Z', '')}`)
 				.then(res => res.json())
 				.then(resJson => {
 					const listContainer = document.getElementById('trends-list');
 					if (listContainer) {
 						listContainer.innerHTML = '';
 					}
-					resJson.slice(0, 6).forEach(trend => {
-						const listItem = document.createElement('li');
-						listItem.textContent = `Hour: ${trend.hour}, Hourly Price Change: ${trend.hourly_price_change}, Prediction Up: ${trend.pred_up}, Prediction Down: ${trend.pred_down}, Total Trading Volume: ${trend.total_trading_volume}`;
-						if (listContainer) {
-							listContainer.appendChild(listItem);
-						}
+					resJson.forEach(trend => {
+							const listItem = document.createElement('li');
+							listItem.textContent = `Hour: ${trend.hour}, Hourly Price Change: ${trend.hourly_price_change}, Prediction Up: ${trend.pred_up}, Prediction Down: ${trend.pred_down}, Total Trading Volume: ${trend.total_trading_volume}`;
+							if (listContainer) {
+								listContainer.appendChild(listItem);
+							}
 					});
 				});
 
-			fetch(`http://${config.server_host}:${config.server_port}/special_days/${month}`)
+			fetch(`http://${config.server_host}:${config.server_port}/special_days/${currentDateTime.toISOString().replace('T', ' ').replace('Z', '').substring(0, 7)}`)
 				.then(res => res.json())
 				.then(resJson => {
-					const listContainer = document.getElementById('special-day-list'); // Update this ID accordingly
+					const listContainer = document.getElementById('special-day-list');
 					if (listContainer) {
 						listContainer.innerHTML = '';
 					}
 					resJson.forEach(specialDay => {
-						if (specialDay.tweet_count > 0 && specialDay.special_days < zzz_datetime) {
+						if (specialDay.special_days < currentDateTime.toISOString().replace('T', ' ').replace('Z', '')) {
 							const listItem = document.createElement('li');
-							listItem.textContent = `${specialDay.special_days}, AVG_CLOSE: ${specialDay.avg_close}, TWEET_COUNT: ${specialDay.tweet_count}`;
+							listItem.textContent = `Day: ${specialDay.special_days}, Average Close Price: ${specialDay.avg_close}, Number of Tweets: ${specialDay.tweet_count}`;
 							if (listContainer) {
 								listContainer.appendChild(listItem);
 							}
@@ -77,6 +78,10 @@ export default function PageB() {
 		console.log('logout pressed but it does not do anything yet');
 	}
 
+	const setTest = (val) => {
+		props.tester(val);
+	}
+
 	return (
 		<>
 			<div className="headerContainer">
@@ -85,10 +90,15 @@ export default function PageB() {
 				<Link to='/c' className="buttonLink">Historical Data</Link>
 			</div>
 
+			<div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '5vh' }}>
+				<p style={{ fontSize: '16px', color: '#333', fontWeight: 'bold' }}>Current Time: {currentDateTime.toISOString().replace('T', ' ').replace('Z', '').substring(0, 19)}</p>
+			</div>
+
 			<div className="bars-container">
 				<div>
 					<h2>Tweets of the Day</h2>
-					<ul id="tweet-list"></ul>
+					<ul id="tweet-list">
+					</ul>
 				</div>
 				<div>
 					<h2>Recent Predictive Tweets from Influential Users</h2>
@@ -110,7 +120,6 @@ export default function PageB() {
 					   :
 				null
 			}
-			
 		</>
 	);
 }

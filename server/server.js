@@ -13,7 +13,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(cookieParser());
 
-app.get('/trends', routes.trends);
+app.get('/trends/:datetime', routes.trends);
 app.get('/monthly_summary', routes.monthlySummary);
 app.get('/special_days/:month', routes.specialDays);
 app.get('/top_weeks', routes.topWeeks);

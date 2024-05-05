@@ -2,10 +2,12 @@ import  '../styles.css';
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { LineChart, Line, XAxis, YAxis, Tooltip, Legend, ReferenceLine, ResponsiveContainer, CartesianGrid} from 'recharts';
+import React, { useContext } from 'react';
+import { DateTimeContext } from '../components/commonDate';
 
 const config = require('../config.json');
 
-export default function PageA() {
+export default function PageA(props) {
 	const [balance, setBalance] = useState(100000);
 	const [bitcoinBalance, setBitcoinBalance] = useState(0);
 	const [price, setPrice] = useState(0);
@@ -13,6 +15,8 @@ export default function PageA() {
 	const [sellQuantity, setSellQuantity] = useState(1);
 
 	const [loggedUser, setLoggedUser] = useState(null);
+	//const [currentDateTime, setCurrentDateTime] = useState(getRandomDateIn2021);
+	const { currentDateTime, setCurrentDateTime } = useContext(DateTimeContext);
 
 	//for graph
 	const [chartData, setChartData] = useState([]);
@@ -71,14 +75,18 @@ export default function PageA() {
 	}, [currentDateTime]);
 	*/
 
+	/*
 	function getRandomDateIn2021() { // initializes time incrementing
 		const start = new Date('2021-01-01T00:00:00Z');
 		const end = new Date('2021-12-31T23:59:59Z');
 		return new Date(start.getTime() + Math.random() * (end.getTime() - start.getTime()));
 	}
-	const [currentDateTime, setCurrentDateTime] = useState(getRandomDateIn2021());
+	// const [currentDateTime, setCurrentDateTime] = useState(getRandomDateIn2021());
+	*/
 
 	useEffect(() => { // time incrementing
+		fetchData(currentDateTime);
+		/*
 		function syncTime() {
 			const now = new Date(currentDateTime.getTime());
 			const msUntilNextMinute = 60000 - (now.getSeconds() * 1000 + now.getMilliseconds());
@@ -90,7 +98,35 @@ export default function PageA() {
 	
 		syncTime();
 		return () => clearTimeout(syncTime);
+		*/
 	}, [currentDateTime]);
+
+	function fetchData(dateTime) {
+		const formattedDateTime = dateTime.toISOString();
+		const url = `http://${config.server_host}:${config.server_port}/past_info/${currentDateTime.toISOString()}$`;
+	
+		fetch(url)
+			.then(response => {
+				if (!response.ok) {
+					throw new Error('Network response was not ok');
+				}
+				return response.json();
+			})
+			.then(data => {
+				const formattedData = data.map(item => ({
+					date: item.minute_formatted,
+					price: parseFloat(item.close),
+				}));
+				setChartData(formattedData);
+				if (formattedData.length > 0) {
+					setPrice(formattedData[formattedData.length - 1].price);
+				}
+			})
+			.catch(error => {
+				console.error('Error fetching data:', error);
+			});
+	}
+
 	
 
 	useEffect(() => {
@@ -111,6 +147,7 @@ export default function PageA() {
 				});
 			});
 		
+		/*
 		fetch(`http://${config.server_host}:${config.server_port}/past_info/${currentDateTime.toISOString()}$`)
 			.then(res => res.json())
 			.then(data => {
@@ -132,6 +169,7 @@ export default function PageA() {
 				setPrice(newData[newData.length - 1].price);
 				setChartData(newData);	
 			});
+			*/
 	}, [currentDateTime]);
 
 	/*
@@ -246,17 +284,21 @@ export default function PageA() {
 		setLoggedUser(null);
 	}
 	
+	const setTest = (val) => {
+		props.tester(val);
+	}
 
 	return (
 		<>
 			<div className="headerContainer">
+				<div style={{ fontWeight: 'bold', fontSize: '18px', margin: '10px 0' }}>Crypto Conquest</div>
 				<Link to='/a' className="buttonLink">Game</Link>
 				<Link to='/b' className="buttonLink">Analytics</Link>
 				<Link to='/c' className="buttonLink">Historical Data</Link>
 			</div>
 
             {/* Forms and user interaction components */}
-            <div style={{ width: '100%', height: 300 }}>
+            <div style={{ width: '100%', height: "65vh" }}>
                 <ResponsiveContainer>
                     <LineChart data={chartData}>
 						<XAxis dataKey="date" />
@@ -269,7 +311,10 @@ export default function PageA() {
                 </ResponsiveContainer>
             </div>
 
-			<p>current time: {currentDateTime.toISOString().replace('T', ' ').replace('Z', '')}</p>
+			<div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '5vh' }}>
+				<p style={{ fontSize: '16px', color: '#333', fontWeight: 'bold' }}>Current Time: {currentDateTime.toISOString().replace('T', ' ').replace('Z', '')}</p>
+			</div>
+
 
 			{/* BN */}
 			<div className="transaction-container">
@@ -307,22 +352,23 @@ export default function PageA() {
 					/>
 
 				</div>
-				<div>
-					<label htmlFor="balance">Current Balance (USD):</label>
-					<input type="text" id="balance" value={balance} readOnly />
+				<div className="input-container">
+					<label htmlFor="balance" className="label">Current Balance (USD):</label>
+					<input type="text" id="balance" value={balance} readOnly className="input" />
 				</div>
-				<div>
-					<label htmlFor="bitcoinBalance">Current Balance (BTC):</label>
-					<input type="text" id="bitcoinBalance" value={bitcoinBalance} readOnly />
+				<div className="input-container">
+					<label htmlFor="bitcoinBalance" className="label">Current Balance (BTC):</label>
+					<input type="text" id="bitcoinBalance" value={bitcoinBalance} readOnly className="input" />
 				</div>
-				<div>
-					<label htmlFor="price">Current BTC Price:</label>
-					<input type="text" id="price" value={price} readOnly />
+				<div className="input-container">
+					<label htmlFor="price" className="label">Current BTC Price:</label>
+					<input type="text" id="price" value={price} readOnly className="input" />
 				</div>
-				<div>
-					<label htmlFor="netProfit">Net Profit:</label>
-					<input type="text" id="netProfit" value={balance + bitcoinBalance * price - 100000} readOnly />
+				<div className="input-container">
+					<label htmlFor="netProfit" className="label">Net Profit:</label>
+					<input type="text" id="netProfit" value={balance + bitcoinBalance * price - 100000} readOnly className="input" />
 				</div>
+
 			</div>
 
 			{/* register and submit might as well go on a separate page */}
