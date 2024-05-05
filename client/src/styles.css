@@ -46,6 +46,81 @@ form button {
     margin-bottom: 10px;
 }
 
+.bars-container {
+    display: flex;
+    justify-content: center;
+}
+
+#tweet-list {
+    list-style-type: none; /* Remove default list styling */
+    padding: 0; /* Remove default padding */
+    width: 25%;
+}
+
+#tweet-list li {
+    margin-bottom: 1px; /* Add some space between list items */
+    border: 1px solid #ccc; /* Add a border around each list item */
+    padding: 10px; /* Add padding inside each list item */
+    background-color: #f9f9f9; /* Add a background color */
+    font-size: 12px;
+}
+
+#special-day-list {
+    list-style-type: none; /* Remove default list styling */
+    padding: 0; /* Remove default padding */
+    height: 1%;
+}
+
+#special-day-list li {
+    margin-bottom: 1px; /* Add some space between list items */
+    border: 1px solid #ccc; /* Add a border around each list item */
+    padding: 10px; /* Add padding inside each list item */
+    background-color: #f9f9f9; /* Add a background color */
+    font-size: 12px;
+}
+
+#monthly-summary-list {
+    list-style-type: none; /* Remove default list styling */
+    padding: 0; /* Remove default padding */
+    height: 1%;
+}
+
+#monthly-summary-list li {
+    margin-bottom: 1px; /* Add some space between list items */
+    border: 1px solid #ccc; /* Add a border around each list item */
+    padding: 10px; /* Add padding inside each list item */
+    background-color: #f9f9f9; /* Add a background color */
+    font-size: 12px;
+}
+
+#trends-list {
+    list-style-type: none; /* Remove default list styling */
+    padding: 0; /* Remove default padding */
+    height: 1%;
+}
+
+#trends-list li {
+    margin-bottom: 1px; /* Add some space between list items */
+    border: 1px solid #ccc; /* Add a border around each list item */
+    padding: 10px; /* Add padding inside each list item */
+    background-color: #f9f9f9; /* Add a background color */
+    font-size: 12px;
+}
+
+#top-weeks-list {
+    list-style-type: none; /* Remove default list styling */
+    padding: 0; /* Remove default padding */
+    height: 1%;
+}
+
+#top-weeks-list li {
+    margin-bottom: 1px; /* Add some space between list items */
+    border: 1px solid #ccc; /* Add a border around each list item */
+    padding: 10px; /* Add padding inside each list item */
+    background-color: #f9f9f9; /* Add a background color */
+    font-size: 12px;
+}
+
 /* Buy/sell buttons */
 
 .transaction-container {

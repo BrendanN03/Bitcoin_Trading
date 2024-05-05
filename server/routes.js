@@ -11,9 +11,7 @@ const connection = mysql.createConnection({
 connection.connect((err) => err && console.log(err));
 
 // TODO: probably can do away with expiration
-async function refreshCookieData(expiration, sid) {
-	let success = true;
-
+function refreshCookieData(expiration, sid, res, finals) {
 	connection.query(`
 		UPDATE session
 		SET expire = '${expiration}'
@@ -21,13 +19,12 @@ async function refreshCookieData(expiration, sid) {
 	`, (err, _) => {
 		if (err) {
 			console.log(err);
-			success = false;
+			finals[1]();
 		} else {
 			res.cookie('sid', sid, { maxAge: 600000, httpOnly: true });
+			finals[0]();
 		}
 	});
-
-	return success;
 }
 
 // Query 1
@@ -38,6 +35,8 @@ const trends = async function (req, res) {
 	const orderFlag = req.query.order ?? 1;
 	const order = orderFlag ? 'ASC' : 'DESC';
 
+	// TODO: i recommend a where clause to select by the hour (will replace order)
+	// TODO: definitely get up and down separately
 	connection.query(`
 		WITH influential_user_predictions_up AS (
 			SELECT
@@ -110,7 +109,7 @@ const specialDays = async function (req, res) {
 				DATE_FORMAT(bt.date, '%Y-%m-%d') AS day,
 				COUNT(bt.id) AS tweet_count
 			FROM bitcoin_tweets bt
-			WHERE DATE_FORMAT(bt.date, '%Y-%m') = '${input_month}' -- input month
+			WHERE DATE_FORMAT(bt.date, '%Y-%m') = '${input_month}'
 			GROUP BY day
 		),
 		bitcoin_daily_average AS (
@@ -119,7 +118,7 @@ const specialDays = async function (req, res) {
 				AVG(bp.open) AS avg_open,
 				AVG(bp.close) AS avg_close
 			FROM bitcoin_prices bp
-			WHERE DATE_FORMAT(bp.date, '%Y-%m') = '${input_month}' -- input month
+			WHERE DATE_FORMAT(bp.date, '%Y-%m') = '${input_month}'
 			GROUP BY day
 		),
 		daily_averages AS (
@@ -189,7 +188,7 @@ const topWeeks = async function (req, res) {
 			ORDER BY wd.difference DESC
 			LIMIT 10
 		)
-		SELECT
+		SELECT DISTINCT
 			wd.year,
 			wd.week,
 			wd.difference,
@@ -197,7 +196,8 @@ const topWeeks = async function (req, res) {
 			bt.text AS tweet_text
 		FROM weekly_differences wd
 		JOIN top_weeks tw ON wd.year = tw.year AND wd.week = tw.week
-		JOIN bitcoin_tweets bt ON YEAR(bt.date) = wd.year AND WEEK(bt.date) = wd.week;
+		JOIN bitcoin_tweets bt ON YEAR(bt.date) = wd.year AND WEEK(bt.date) = wd.week
+		LIMIT 10;
 	`, (err, data) => {
 		if (err) {
 			console.log(err);
@@ -223,7 +223,7 @@ const dayTweets = async function (req, res) {
 		WHERE DATE(bt.date) = DATE('${input_datetime}') AND
 			  bt.date < '${input_datetime}'
 		ORDER BY bt.date DESC
-		LIMIT ${limit};
+		LIMIT 5;
 	`, (err, data) => {
 		if (err) {
 			console.log(err);
@@ -306,18 +306,21 @@ const pastInfo = async function (req, res) {
 	const input_datetime = req.params.date;
 
 	connection.query(`
-		SELECT
-			bp.date AS btc_date,
-			bp.close,
-			bt.date AS tweet_date,
-			bt.text
-		FROM bitcoin_prices bp, bitcoin_tweets bt
-		WHERE
-			bp.date = '${input_datetime}' AND
-			DATE(bt.date) = DATE('${input_datetime}') AND
-			bt.date <= bp.date
-		ORDER BY bt.date DESC
-		LIMIT 1000;
+		SELECT * 
+		FROM (
+			SELECT
+				bp.date - '2000-10-10T11:11:00.000Z' AS btc_date,
+				bp.date AS string_date,
+				EXTRACT(HOUR FROM bp.date) AS hour,
+    			EXTRACT(MINUTE FROM bp.date) AS minute,
+				DATE_FORMAT(bp.date, '%Y-%m-%d %H:%i') AS minute_formatted,
+				bp.close
+			FROM bitcoin_prices bp
+			WHERE bp.date <= '${input_datetime}'
+			ORDER BY bp.date DESC
+			LIMIT 100
+		) AS reverse
+		ORDER BY btc_date ASC;
 	`, (err, data) => {
 		if (err) {
 			console.log(err);
@@ -441,13 +444,13 @@ const login = async function (req, res) {
 			console.log(err);
 			res.sendStatus(500);
 			return;
-		} else if (data.length === 0) {
-			// credentials are invalid
-			res.sendStatus(404);
-			return;
 		} else if (data[0].sid) {
 			// there is already a session for the user, so update it
-			refreshCookieData(expiration, data[0].sid) ? res.sendStatus(200) : res.sendStatus(500);
+			console.log('bruh');
+			refreshCookieData(expiration, data[0].sid, res, [
+				() => { res.sendStatus(200) },
+				() => { res.sendStatus(500) }
+			]);
 			return;
 		}
 
@@ -538,8 +541,10 @@ const session = async function (req, res) {
 			// the session is valid, so refresh it
 			now.setTime(now.getTime() + 600000); // 10 minutes
 			const expiration = now.toISOString().slice(0, 19).replace('T', ' ');
-			refreshCookieData(expiration, req.cookies.sid) ? res.status(200).json({ user: data[0].username })
-														   : res.status(500).json({});
+			refreshCookieData(expiration, req.cookies.sid, res, [
+				() => { res.status(200).json({ user: data[0].username }) },
+				() => { res.status(500).json({}) }
+			]);
 		}
 	});
 }

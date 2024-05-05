@@ -4,7 +4,7 @@ import { Link } from 'react-router-dom';
 
 const config = require('../config.json');
 
-export default function PageB() {
+export default function PageC() {
 	const [loggedUser, setLoggedUser] = useState(null);
 
 	useEffect(() => {
@@ -19,7 +19,6 @@ export default function PageB() {
 			.then(resJson => setLoggedUser(resJson.user), _ => {});
 		
 			const zzz_datetime = '2021-11-26%2023:59:00'; // TODO: get a better name or a real source for datetime
-			const month = '2021-11'; 
 			fetch(`http://${config.server_host}:${config.server_port}/day_tweets/${zzz_datetime}`)
 				.then(res => res.json()) // TODO: may handle status code 500
 				.then(resJson => {
@@ -35,41 +34,40 @@ export default function PageB() {
 						}
 					});
 				});
-
-			fetch(`http://${config.server_host}:${config.server_port}/trends`)
+			
+			fetch(`http://${config.server_host}:${config.server_port}/monthly_summary`)
 				.then(res => res.json())
 				.then(resJson => {
-					const listContainer = document.getElementById('trends-list');
+					const listContainer = document.getElementById('monthly-summary-list');
 					if (listContainer) {
 						listContainer.innerHTML = '';
 					}
-					resJson.slice(0, 6).forEach(trend => {
+					resJson.forEach(summary => {
+						if (summary.month < zzz_datetime) {
+							const listItem = document.createElement('li');
+							listItem.textContent = `Month: ${summary.month}, AVG_OPEN: ${summary.avg_open}, AVG_CLOSE: ${summary.avg_close}`;
+							if (listContainer) {
+								listContainer.appendChild(listItem);
+							}
+						}
+					});
+				});
+
+			fetch(`http://${config.server_host}:${config.server_port}/top_weeks`)
+				.then(res => res.json())
+				.then(resJson => {
+					const listContainer = document.getElementById('top-weeks-list');
+					if (listContainer) {
+						listContainer.innerHTML = '';
+					}
+					resJson.slice(0, 6).forEach(week => { 
 						const listItem = document.createElement('li');
-						listItem.textContent = `Hour: ${trend.hour}, Hourly Price Change: ${trend.hourly_price_change}, Prediction Up: ${trend.pred_up}, Prediction Down: ${trend.pred_down}, Total Trading Volume: ${trend.total_trading_volume}`;
+						listItem.textContent = `Year: ${week.year}, Week: ${week.week}, Difference: ${week.difference}, Tweet: ${week.tweet_text}`;
 						if (listContainer) {
 							listContainer.appendChild(listItem);
 						}
 					});
 				});
-
-			fetch(`http://${config.server_host}:${config.server_port}/special_days/${month}`)
-				.then(res => res.json())
-				.then(resJson => {
-					const listContainer = document.getElementById('special-day-list'); // Update this ID accordingly
-					if (listContainer) {
-						listContainer.innerHTML = '';
-					}
-					resJson.forEach(specialDay => {
-						if (specialDay.tweet_count > 0 && specialDay.special_days < zzz_datetime) {
-							const listItem = document.createElement('li');
-							listItem.textContent = `${specialDay.special_days}, AVG_CLOSE: ${specialDay.avg_close}, TWEET_COUNT: ${specialDay.tweet_count}`;
-							if (listContainer) {
-								listContainer.appendChild(listItem);
-							}
-						}
-					})
-				});
-
 			
 	}, []);
 
@@ -87,18 +85,13 @@ export default function PageB() {
 
 			<div className="bars-container">
 				<div>
-					<h2>Tweets of the Day</h2>
-					<ul id="tweet-list"></ul>
+					<h2>Monthly Summaries</h2>
+					<ul id="monthly-summary-list"></ul>
 				</div>
 				<div>
-					<h2>Recent Predictive Tweets from Influential Users</h2>
-					<ul id="trends-list"></ul>
+					<h2>Tweets From Volatile Weeks</h2>
+					<ul id="top-weeks-list"></ul>
 				</div>
-				<div>
-					<h2>High Activity Days of the Month</h2>
-					<ul id="special-day-list"></ul>
-				</div>
-				
 			</div>
 
 			{
