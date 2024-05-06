@@ -14,6 +14,7 @@ export default function PageA() {
 	const [buyQuantity, setBuyQuantity] = useState(1);
 	const [sellQuantity, setSellQuantity] = useState(1);
 
+	const [authSide, setAuthSide] = useState(true); // false = register; true = login
 	const [loggedUser, setLoggedUser] = useState(null);
 	//const [currentDateTime, setCurrentDateTime] = useState(getRandomDateIn2021);
 	const { currentDateTime, setCurrentDateTime } = useContext(DateTimeContext);
@@ -228,17 +229,32 @@ export default function PageA() {
 	}, [currentDateTime]);
 	*/
 
+	// handle changing login/register form
+	const authChangeHandle = (toLogin) => {
+		if (toLogin) {
+			document.getElementById('register_username').value = '';
+			document.getElementById('register_password').value = '';
+			document.getElementById('register_password_confirm').value = '';
+		} else {
+			document.getElementById('login_username').value = '';
+			document.getElementById('login_password').value = '';
+		}
+
+		setAuthSide(toLogin);
+		document.getElementById('auth_msg').innerHTML = '';
+	}
+
 	// handle registering account
 	const registerSubmit = (e) => {
 		e.preventDefault();
 		
 		const username = document.getElementById('register_username').value;
 		const password = document.getElementById('register_password').value;
-		const registerMsgElt = document.getElementById('register_msg');
+		const authMsgElt = document.getElementById('auth_msg');
 
 		// check if the passwords match
 		if (password !== document.getElementById('register_password_confirm').value) {
-			registerMsgElt.innerHTML = "Passwords don't match";
+			authMsgElt.innerHTML = "Passwords don't match";
 			return;
 		}
 
@@ -255,11 +271,12 @@ export default function PageA() {
 		})
 			.then(res => {
 				if (res.status === 500) {
-					registerMsgElt.innerHTML = 'Something went wrong';
+					authMsgElt.innerHTML = 'Something went wrong';
 				} else if (res.status === 409) {
-					registerMsgElt.innerHTML = 'Username is taken';
+					authMsgElt.innerHTML = 'Username is taken';
 				} else if (res.status === 201) {
-					registerMsgElt.innerHTML = 'You have successfully registered';
+					authMsgElt.innerHTML = 'You have successfully registered';
+					setAuthSide(true);
 				} else {
 					console.log('registerSubmit: what happened here');
 					throw new Error('what happen');
@@ -273,7 +290,7 @@ export default function PageA() {
 
 		const username = document.getElementById('login_username').value;
 		const password = document.getElementById('login_password').value;
-		const loginMsgElt = document.getElementById('login_msg');
+		const authMsgElt = document.getElementById('auth_msg');
 
 		// make the POST request
 		fetch(`http://${config.server_host}:${config.server_port}/login`, {
@@ -289,11 +306,11 @@ export default function PageA() {
 		})
 			.then(res => {
 				if (res.status === 500) {
-					loginMsgElt.innerHTML = 'Something went wrong';
+					authMsgElt.innerHTML = 'Something went wrong';
 				} else if (res.status === 404) {
-					loginMsgElt.innerHTML = 'Incorrect credentials';
+					authMsgElt.innerHTML = 'Incorrect credentials';
 				} else if (res.status === 200) {
-					loginMsgElt.innerHTML = 'Login successful';
+					authMsgElt.innerHTML = 'Login successful';
 					setLoggedUser(username);
 					return res.json();
 				} else {
@@ -316,6 +333,7 @@ export default function PageA() {
 			credentials: 'include'
 		});
 		setLoggedUser(null);
+		document.getElementById('auth_msg').innerHTML = '';
 	}
 
 	return (
@@ -401,38 +419,41 @@ export default function PageA() {
 
 			</div>
 
-			{/* register and submit might as well go on a separate page */}
-			<div className="auth-container">
-				<div className="register-form">
-					<form onSubmit={registerSubmit}>
-						<input id='register_username' type='text' name='username' placeholder='Username' minLength='5' maxLength='10' required />
-						<input id='register_password' type='password' name='password' placeholder='Password' minLength='5' maxLength='15' required />
-						<input id='register_password_confirm' type='password' name='password_confirm' placeholder='Confirm Password' minLength='5' maxLength='15' required />
-						<button type='submit'>Register</button>
-						<span id='register_msg' />
-					</form>
-				</div>
-
-				<div className="login-form">
-					<form onSubmit={loginSubmit}>
-						<input id='login_username' type='text' name='username' placeholder='Username' minLength='5' maxLength='10' required />
-						<input id='login_password' type='password' name='password' placeholder='Password' minLength='5' maxLength='15' required />
-						<button type='submit'>Login</button>
-						<span id='login_msg' />
-					</form>
+			<div className='centerer'>
+				<div className='auth-container'>
+					{
+					loggedUser ?
+						<>
+							<span>Hello, {loggedUser}! </span>
+							<button type='button' onClick={logout}>Logout</button>
+						</>
+					: authSide ?
+						<div>
+							<div className="login-form">
+								<form onSubmit={loginSubmit}>
+									<input id='login_username' type='text' name='username' placeholder='Username' minLength='5' maxLength='10' required />
+									<input id='login_password' type='password' name='password' placeholder='Password' minLength='5' maxLength='15' required />
+									<button type='submit'>Login</button>
+								</form>
+								<button onClick={() => authChangeHandle(false)}>Don't have an account?</button>
+							</div>
+						</div>
+					:
+						<div>
+							<div className="register-form">
+								<form onSubmit={registerSubmit}>
+									<input id='register_username' type='text' name='username' placeholder='Username' minLength='5' maxLength='10' required />
+									<input id='register_password' type='password' name='password' placeholder='Password' minLength='5' maxLength='15' required />
+									<input id='register_password_confirm' type='password' name='password_confirm' placeholder='Confirm Password' minLength='5' maxLength='15' required />
+									<button type='submit'>Register</button>
+								</form>
+								<button onClick={() => authChangeHandle(true)}>Already have an account?</button>
+							</div>
+						</div>
+					}
+					<p id='auth_msg' />
 				</div>
 			</div>
-
-
-			{
-			loggedUser ?
-				<>
-					<span>hi {loggedUser}</span>
-					<button type='button' onClick={logout}>Logout</button>
-				</>
-					   :
-				null
-			}
 		</>
 	);
 }

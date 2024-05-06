@@ -22,17 +22,24 @@ body {
     background-color: #0056b3;
 }
 
+.centerer {
+	text-align: center;
+}
 
 .auth-container {
-    display: flex;
+    display: inline-block;
     justify-content: center;
     align-items: center;
     flex-direction: column;
+	margin-top: 30px;
+	background-color: #9fe0fc;
+	padding: 10px;
 }
 
-.register-form,
-.login-form {
-    margin-bottom: 20px;
+#auth_msg {
+	padding-top: 10px;
+	margin-top: 0px;
+	margin-bottom: 0px;
 }
 
 form {
