@@ -10,13 +10,15 @@ want to learn more about how market dynamics can affect cryptocurrency values an
 skills against the simulated unpredictability of the cryptocurrency market.
 
 ## Key Features
-We will implement buttons that the user will need to click to trade/buy/sell. We will implement sliders/spins for the
-amount of money you want to buy/sell. The value of the player’s assets (dollars + bitcoin) will be shown in a graph
-that continuously updates as time goes along. Tweets will appear and disappear on the side as well. The user will also
-be able to filter the tweets to only show predictive tweets by influential Twitter-users. We will also include a slider/spin 
-for the amount of minutes/hours/days the user wants to skip ahead (not buy or sell anything), and we will have three buttons
-to let user choose between minutes/hours/days. We will also include text displays to show the player’s net profits/losses on
-the day/month/all-time and to show the player current holdings (of cash and of Bitcoin).
+We have implemented buttons that the user will need to click to buy/sell. We have im-
+plemented sliders for the amount of money you want to buy/sell. The trend of Bitcoin price is displayed in a graph that
+continuously updates as time goes along. Daily tweets appear and disappear in our ANALYTICS page. This page also
+displays the number of recent predictive tweets by influential Twitter-users, as well as information on recent Bitcoin trading
+volumes and high activity days in the Bitcoin community that month. We also have a HISTORICAL DATA page containing
+information on previous weeks where Bitcoin prices were high volatile and on the average Bitcoin prices over the past months.
+We also include a slider for the amount of minutes/hours/days the user wants to skip ahead (not buy or sell anything), and
+we have have three buttons to let user choose between minutes/hours/days. We include text displays to show the player’s
+net profits/losses on the day/month/all-time and to show the player current holdings (dollars + Bitcoin).
 
 ## Target Audience
 - People interested in cryptocurrency.
