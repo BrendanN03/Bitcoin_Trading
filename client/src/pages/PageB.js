@@ -11,6 +11,7 @@ export default function PageB() {
 	const { currentDateTime, setCurrentDateTime } = useContext(DateTimeContext);
 
 	useEffect(() => {
+		// attempt authorization via session cookie
 		fetch(`http://${config.server_host}:${config.server_port}/session`, { credentials: 'include' })
 			.then(res => {
 				if (res.status !== 200) {
@@ -74,8 +75,13 @@ export default function PageB() {
 			
 	}, []);
 
-	const logout = (e) => {
-		console.log('logout pressed but it does not do anything yet');
+	// handle user logout
+	const logout = () => {
+		fetch(`http://${config.server_host}:${config.server_port}/logout`, {
+			method: 'POST',
+			credentials: 'include'
+		});
+		setLoggedUser(null);
 	}
 
 	return (
@@ -108,12 +114,13 @@ export default function PageB() {
 			</div>
 
 			{
+			// when user is logged in, display that they are logged in. otherwise, nothing is displayed
 			loggedUser ?
 				<>
-					<span>hi {loggedUser}</span>
+					<span>Hello, {loggedUser}! </span>
 					<button type='button' onClick={logout}>Logout</button>
 				</>
-					   :
+			:
 				null
 			}
 		</>

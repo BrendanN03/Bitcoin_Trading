@@ -6,8 +6,11 @@ const config = require('../config.json');
 
 export default function PageD() {
 	const [loggedUser, setLoggedUser] = useState(null);
+	const [currentUSD, setCurrentUSD] = useState(0);
+	const [currentBTC, setCurrentBTC] = useState(0);
 
 	useEffect(() => {
+		// attempt authorization via session cookie
 		fetch(`http://${config.server_host}:${config.server_port}/session`, { credentials: 'include' })
 			.then(res => {
 				if (res.status !== 200) {
@@ -19,8 +22,13 @@ export default function PageD() {
 			.then(resJson => setLoggedUser(resJson.user), _ => {});
 	}, []);
 
-	const logout = (e) => {
-		console.log('logout pressed but it does not do anything yet');
+	// handle user logout
+	const logout = () => {
+		fetch(`http://${config.server_host}:${config.server_port}/logout`, {
+			method: 'POST',
+			credentials: 'include'
+		});
+		setLoggedUser(null);
 	}
 
 	return (
@@ -33,12 +41,13 @@ export default function PageD() {
 			</div>
 
 			{
+			// when user is logged in, display that they are logged in. otherwise, nothing is displayed
 			loggedUser ?
 				<>
 					<span>hi {loggedUser}</span>
 					<button type='button' onClick={logout}>Logout</button>
 				</>
-					   :
+			:
 				null
 			}
 			

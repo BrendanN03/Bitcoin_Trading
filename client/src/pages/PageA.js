@@ -29,6 +29,7 @@ export default function PageA() {
 			setBalance(prevBalance => prevBalance - buyQuantity);
 			setBitcoinBalance(prevBalance => prevBalance + 1.0 * buyQuantity / price);
 
+			// keep track of the changes via database if the user is logged in
 			if (loggedUser) {
 				fetch(`http://${config.server_host}:${config.server_port}/transact`, {
 					method: 'POST',
@@ -61,6 +62,7 @@ export default function PageA() {
 			setBitcoinBalance(prev => prev - quantity);
 			setBalance(prev => parseFloat((prev + quantity * price).toFixed(2)));
 
+			// keep track of the changes via database if the user is logged in
 			if (loggedUser) {
 				fetch(`http://${config.server_host}:${config.server_port}/transact`, {
 					method: 'POST',
@@ -170,11 +172,8 @@ export default function PageA() {
 			});
 	}
 
-	
-
 	useEffect(() => {
-		// see if we can authorize via cookie, in a dollar store way
-		// will probably a real function later
+		// attempt authorization via session cookie
 		fetch(`http://${config.server_host}:${config.server_port}/session`, { credentials: 'include' })
 			.then(res => {
 				if (res.status !== 200) {
@@ -187,18 +186,12 @@ export default function PageA() {
 				if (resJson.length != 0) {	
 					setLoggedUser(resJson.user);
 					if (resJson.user) {
+						// at this point, we have successfully authenticated
 						setBalance(resJson.curr_usd);
 						setBitcoinBalance(resJson.curr_btc);
 					}
 				}
-			},
-				 // TODO: below is a mysterious reject handler; remove it? original was just _ => {}
-				_ => {
-				fetch(`http://${config.server_host}:${config.server_port}/past_info/${currentDateTime.toISOString()}$`)
-				.then(res => res.json())
-				.then(data => {	
-				});
-			});
+			}, _ => {});
 	}, []);
 
 	/*
@@ -326,8 +319,8 @@ export default function PageA() {
 		
 	}
 
-	// handle account logout
-	const logout = (e) => {
+	// handle user logout
+	const logout = () => {
 		fetch(`http://${config.server_host}:${config.server_port}/logout`, {
 			method: 'POST',
 			credentials: 'include'
@@ -419,14 +412,18 @@ export default function PageA() {
 
 			</div>
 
+			{/* authorization-related stuff */}
 			<div className='centerer'>
 				<div className='auth-container'>
 					{
+					// when user is logged in, display that they are logged in
 					loggedUser ?
 						<>
 							<span>Hello, {loggedUser}! </span>
 							<button type='button' onClick={logout}>Logout</button>
 						</>
+
+					// user is not logged in and we are displaying the login form
 					: authSide ?
 						<div>
 							<div className="login-form">
@@ -438,6 +435,8 @@ export default function PageA() {
 								<button onClick={() => authChangeHandle(false)}>Don't have an account?</button>
 							</div>
 						</div>
+
+					// user is not logged in and we are displaying the registration form
 					:
 						<div>
 							<div className="register-form">
