@@ -22,7 +22,7 @@ function refreshCookieData(expiration, sid, res, finals) {
 			console.log(err);
 			finals[1]();
 		} else {
-			res.cookie('sid', sid, { maxAge: 600000, httpOnly: true });
+			res.cookie('sid', sid, { maxAge: 21600000, httpOnly: true });
 			finals[0]();
 		}
 	});
@@ -490,7 +490,7 @@ const login = async function (req, res) {
 			return;
 		}
 
-		res.cookie('sid', data[0].sid, { maxAge: 600000, httpOnly: true });
+		res.cookie('sid', data[0].sid, { maxAge: 21600000, httpOnly: true });
 		res.status(200).json({ curr_btc: data[0].current_btc, curr_usd: data[0].current_usd })
 	}
 }
