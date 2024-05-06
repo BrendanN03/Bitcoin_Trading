@@ -11,7 +11,9 @@ export const DateTimeProvider = ({ children }) => {
   function getRandomDateIn2021() {
       const start = new Date('2021-01-01T00:00:00Z');
       const end = new Date('2021-12-31T23:59:59Z');
-      return new Date(start.getTime() + Math.random() * (end.getTime() - start.getTime()));
+	  const out = new Date(start.getTime() + Math.random() * (end.getTime() - start.getTime()));
+	  out.setSeconds(0, 0);
+      return out;
   }
 
   const [currentDateTime, setCurrentDateTime] = useState(getRandomDateIn2021());

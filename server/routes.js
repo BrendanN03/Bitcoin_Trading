@@ -6,7 +6,8 @@ const connection = mysql.createConnection({
 	user: config.rds_user,
 	password: config.rds_password,
 	port: config.rds_port,
-	database: config.rds_db
+	database: config.rds_db,
+	decimalNumbers: true
 });
 connection.connect((err) => err && console.log(err));
 
@@ -36,8 +37,6 @@ const trends = async function (req, res) {
 	const orderFlag = req.query.order ?? 1;
 	const order = orderFlag ? 'ASC' : 'DESC';
 
-	// TODO: i recommend a where clause to select by the hour (will replace order)
-	// TODO: definitely get up and down separately
 	connection.query(`
 		WITH influential_user_predictions_up AS (
 			SELECT
@@ -218,16 +217,17 @@ const dayTweets = async function (req, res) {
 	
 	// TODO: might have to convert from url encoding to regular string
 	const input_datetime = req.params.datetime;
-	let limit = req.query.limit ?? 10;
+	let limit = req.query.limit ?? 5;
 	limit = limit < 0 ? 999999 : limit;
 
 	connection.query(`
 		SELECT bt.user_name, bt.user_verified, bt.date, bt.text
 		FROM bitcoin_tweets bt
-		WHERE DATE(bt.date) = DATE('${input_datetime}') AND
-			  bt.date < '${input_datetime}'
+		WHERE
+			DATE(bt.date) = DATE('${input_datetime}') AND
+			bt.date < '${input_datetime}'
 		ORDER BY bt.date DESC
-		LIMIT 5;
+		LIMIT ${limit};
 	`, (err, data) => {
 		if (err) {
 			console.log(err);
@@ -311,8 +311,8 @@ const pastInfo = async function (req, res) {
 
 	connection.query(`
 		SELECT * 
-		FROM (
-			SELECT
+		FROM
+			(SELECT
 				bp.date - '2000-10-10T11:11:00.000Z' AS btc_date,
 				bp.date AS string_date,
 				EXTRACT(HOUR FROM bp.date) AS hour,
@@ -322,17 +322,14 @@ const pastInfo = async function (req, res) {
 			FROM bitcoin_prices bp
 			WHERE bp.date <= '${input_datetime}'
 			ORDER BY bp.date DESC
-			LIMIT 100
-		) AS reverse
+			LIMIT 100) AS reverse
 		ORDER BY btc_date ASC;
 	`, (err, data) => {
 		if (err) {
 			console.log(err);
 			res.status(500).json({});
 		} else {
-			console.log('aaa');
 			res.status(200).json(data);
-			console.log('bruh');
 		}
 	});
 }
@@ -435,7 +432,7 @@ const login = async function (req, res) {
 	const expiration = now.toISOString().slice(0, 19).replace('T', ' ');
 
 	connection.query(`
-		SELECT u.id, s.sid
+		SELECT u.id, s.sid, u.current_btc, u.current_usd
 		FROM user u
 		LEFT JOIN session s ON u.id = s.user_id
 		WHERE
@@ -446,17 +443,18 @@ const login = async function (req, res) {
 	function loginVerifyHandler(err, data) {
 		if (err) {
 			console.log(err);
-			res.sendStatus(500);
+			res.status(500).json({});
 			return;
 		} else if (data.length === 0) {
-			res.sendStatus(404);
+			res.status(404).json({});
 			return;
 		} else if (data[0].sid) {
 			// there is already a session for the user, so update it
-			console.log('bruh');
 			refreshCookieData(expiration, data[0].sid, res, [
-				() => { res.sendStatus(200) },
-				() => { res.sendStatus(500) }
+				() => {
+					res.status(200).json({ curr_btc: data[0].current_btc, curr_usd: data[0].current_usd })
+				},
+				() => { res.status(500).json({}); }
 			]);
 			return;
 		}
@@ -473,13 +471,14 @@ const login = async function (req, res) {
 	function sessionInsertHandler(err, data) {
 		if (err) {
 			console.log(err);
-			res.sendStatus(500);
+			res.status(500).json({});
 			return;
 		}
 
 		connection.query(`
-			SELECT s.sid
+			SELECT s.sid, u.current_btc, u.current_usd
 			FROM session s
+			JOIN user u ON s.user_id = u.id
 			WHERE s.user_id = ${data[0].id};
 		`, sessionIdHandler);
 	}
@@ -487,12 +486,12 @@ const login = async function (req, res) {
 	function sessionIdHandler(err, data) {
 		if (err) {
 			console.log(err);
-			res.sendStatus(500);
+			res.status(500).json({});
 			return;
 		}
 
 		res.cookie('sid', data[0].sid, { maxAge: 600000, httpOnly: true });
-		res.sendStatus(200);
+		res.status(200).json({ curr_btc: data[0].current_btc, curr_usd: data[0].current_usd })
 	}
 }
 
@@ -518,7 +517,7 @@ const session = async function (req, res) {
 
 	// they do not have a session cookie
 	if (!req.cookies.sid) {
-		res.status(200).json({ user: null });
+		res.status(200).json({ user: null, curr_btc: null, curr_usd: null });
 		return;
 	}
 	
@@ -527,7 +526,7 @@ const session = async function (req, res) {
 	
 	// validate the session cookie
 	connection.query(`
-		SELECT u.username, s.expire
+		SELECT u.username, s.expire, u.current_btc, u.current_usd
 		FROM session s
 		JOIN user u ON s.user_id = u.id
 		WHERE s.sid = ${req.cookies.sid};
@@ -549,7 +548,7 @@ const session = async function (req, res) {
 			now.setTime(now.getTime() + 600000); // 10 minutes
 			const expiration = now.toISOString().slice(0, 19).replace('T', ' ');
 			refreshCookieData(expiration, req.cookies.sid, res, [
-				() => { res.status(200).json({ user: data[0].username }) },
+				() => { res.status(200).json({ user: data[0].username, curr_btc: data[0].current_btc, curr_usd: data[0].current_usd }) },
 				() => { res.status(500).json({}) }
 			]);
 		}
@@ -558,15 +557,13 @@ const session = async function (req, res) {
 
 const transact = function (req, res) {
 	console.log(`[transact] body: ${JSON.stringify(req.body)}, cookies: ${JSON.stringify(req.cookies)}`);
-	
-	// TODO: do we update current btc and current usd in user too
 
 	connection.query(`
 		SELECT u.id
 		FROM user u
 		JOIN session s ON u.id = s.user_id
 		WHERE
-			u.username = ${req.body.user} AND
+			u.username = '${req.body.user}' AND
 			s.sid = ${req.cookies.sid};
 	`, transactUserIdHandler);
 
@@ -584,10 +581,36 @@ const transact = function (req, res) {
 		connection.query(`
 			INSERT INTO transaction (user_id, date, amount_traded, type)
 			VALUES (${data[0].id}, '${req.body.date}', ${req.body.amount}, ${Number(req.body.type === 'buy')});
-		`, insertHandler);
+		`, (err, _) => insertHandler(err, data[0].id));
 	}
 
-	function insertHandler(err, _) {
+	// id is from first query
+	function insertHandler(err, id) {
+		if (err) {
+			console.log(err);
+			res.sendStatus(500);
+			return;
+		}
+
+		connection.query(`
+			UPDATE user SET current_btc = ${req.body.new_btc} WHERE id = ${id};
+		`, (err, _) => btcHandler(err, id));
+	}
+
+	// id is from first query
+	function btcHandler(err, id) {
+		if (err) {
+			console.log(err);
+			res.sendStatus(500);
+			return;
+		}
+
+		connection.query(`
+			UPDATE user SET current_usd = ${req.body.new_usd} WHERE id = ${id};
+		`, usdHandler);
+	}
+
+	function usdHandler(err, _) {
 		if (err) {
 			console.log(err);
 			res.sendStatus(500);
@@ -595,7 +618,7 @@ const transact = function (req, res) {
 		}
 
 		res.sendStatus(200);
-	}	
+	}
 }
 
 module.exports = {

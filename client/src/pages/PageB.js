@@ -6,7 +6,7 @@ import { DateTimeContext } from '../components/commonDate';
 
 const config = require('../config.json');
 
-export default function PageB(props) {
+export default function PageB() {
 	const [loggedUser, setLoggedUser] = useState(null);
 	const { currentDateTime, setCurrentDateTime } = useContext(DateTimeContext);
 
@@ -76,10 +76,6 @@ export default function PageB(props) {
 
 	const logout = (e) => {
 		console.log('logout pressed but it does not do anything yet');
-	}
-
-	const setTest = (val) => {
-		props.tester(val);
 	}
 
 	return (

@@ -7,7 +7,7 @@ import { DateTimeContext } from '../components/commonDate';
 
 const config = require('../config.json');
 
-export default function PageA(props) {
+export default function PageA() {
 	const [balance, setBalance] = useState(100000);
 	const [bitcoinBalance, setBitcoinBalance] = useState(0);
 	const [price, setPrice] = useState(0);
@@ -23,8 +23,28 @@ export default function PageA(props) {
 
 	const handleBuy = () => {
 		if (price != 0) {
+			const origUSD = balance;
+			const origBTC = bitcoinBalance;
 			setBalance(prevBalance => prevBalance - buyQuantity);
 			setBitcoinBalance(prevBalance => prevBalance + 1.0 * buyQuantity / price);
+
+			if (loggedUser) {
+				fetch(`http://${config.server_host}:${config.server_port}/transact`, {
+					method: 'POST',
+					credentials: 'include',
+					body: JSON.stringify({
+						user: loggedUser,
+						date: currentDateTime,
+						amount: buyQuantity,
+						type: 'buy',
+						new_usd: origUSD - buyQuantity,
+						new_btc: origBTC + 1.0 * buyQuantity / price
+					}),
+					headers: {
+						'Content-type': 'application/json; charset=UTF-8'
+					}
+				});
+			}
 		}
 
 		const now = new Date(currentDateTime.getTime());
@@ -33,9 +53,31 @@ export default function PageA(props) {
 	};
 
 	const handleSell = () => {
-		const quantity = bitcoinBalance * sellQuantity / 100.0;
-		setBitcoinBalance(prev => prev - quantity);
-		setBalance(prev => prev + quantity * price);
+		if (price != 0) {
+			const origUSD = balance;
+			const origBTC = bitcoinBalance;
+			const quantity = bitcoinBalance * sellQuantity / 100.0;
+			setBitcoinBalance(prev => prev - quantity);
+			setBalance(prev => parseFloat((prev + quantity * price).toFixed(2)));
+
+			if (loggedUser) {
+				fetch(`http://${config.server_host}:${config.server_port}/transact`, {
+					method: 'POST',
+					credentials: 'include',
+					body: JSON.stringify({
+						user: loggedUser,
+						date: currentDateTime,
+						amount: parseFloat((origUSD + quantity * price).toFixed(2)) - origUSD,
+						type: 'sell',
+						new_usd: parseFloat((origUSD + quantity * price).toFixed(2)),
+						new_btc: origBTC - quantity
+					}),
+					headers: {
+						'Content-type': 'application/json; charset=UTF-8'
+					}
+				});
+			}
+		}
 
 		const now = new Date(currentDateTime.getTime());
 		const msUntilNextMinute = 60000 - (now.getSeconds() * 1000 + now.getMilliseconds());
@@ -140,37 +182,23 @@ export default function PageA(props) {
 
 				return res.json();
 			})
-			.then(resJson => setLoggedUser(resJson.user), _ => {
+			.then(resJson => {
+				if (resJson.length != 0) {	
+					setLoggedUser(resJson.user);
+					if (resJson.user) {
+						setBalance(resJson.curr_usd);
+						setBitcoinBalance(resJson.curr_btc);
+					}
+				}
+			},
+				 // TODO: below is a mysterious reject handler; remove it? original was just _ => {}
+				_ => {
 				fetch(`http://${config.server_host}:${config.server_port}/past_info/${currentDateTime.toISOString()}$`)
 				.then(res => res.json())
 				.then(data => {	
 				});
 			});
-		
-		/*
-		fetch(`http://${config.server_host}:${config.server_port}/past_info/${currentDateTime.toISOString()}$`)
-			.then(res => res.json())
-			.then(data => {
-				//setChartData(data.map(item => ({
-				//	date: item.btc_date,
-				//	price: parseFloat(item.close)
-				//})));
-				
-				const newData = data.map(item => {
-					const date = new Date(item.string_date);
-					const hour = `${date.getFullYear()}-${('0' + (date.getMonth() + 1)).slice(-2)}-${('0' + date.getDate()).slice(-2)} ${('0' + date.getHours()).slice(-2)}:00`;
-					return {
-						//date: date.toISOString().substring(0, 10),
-						date: item.minute_formatted,
-						price: parseFloat(item.close),
-						hour
-					};
-				});
-				setPrice(newData[newData.length - 1].price);
-				setChartData(newData);	
-			});
-			*/
-	}, [currentDateTime]);
+	}, []);
 
 	/*
 	MORE ORIGINAL GRAPH/TIME HANDLING CODE
@@ -267,11 +295,17 @@ export default function PageA(props) {
 				} else if (res.status === 200) {
 					loginMsgElt.innerHTML = 'Login successful';
 					setLoggedUser(username);
+					return res.json();
 				} else {
 					console.log('loginSubmit: what happened here');
 					throw new Error('what happen');
 				}
+				return Promise.reject(res);
 			})
+			.then(resJson => {
+				setBalance(resJson.curr_usd);
+				setBitcoinBalance(resJson.curr_btc);
+			}, _ => {});
 		
 	}
 
@@ -282,10 +316,6 @@ export default function PageA(props) {
 			credentials: 'include'
 		});
 		setLoggedUser(null);
-	}
-	
-	const setTest = (val) => {
-		props.tester(val);
 	}
 
 	return (
