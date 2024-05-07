@@ -9,6 +9,10 @@ body {
     font-size: 20px; /* Adjust font size as needed */
 }
 
+.headerContainer > * {
+    margin-right: 10px; /* Adjust margin as needed */
+}
+
 .buttonLink {
     display: inline-block;
     padding: 10px 20px;
@@ -75,6 +79,20 @@ form button {
     border-radius: 10px;
 }
 
+#tweet2-list {
+    list-style-type: none; /* Remove default list styling */
+    padding: 0; /* Remove default padding */
+}
+
+#tweet2-list li {
+    margin-bottom: 1px; /* Add some space between list items */
+    border: 1px solid #ccc; /* Add a border around each list item */
+    padding: 10px; /* Add padding inside each list item */
+    background-color: #f9f9f9; /* Add a background color */
+    font-size: 12px;
+    border-radius: 10px;
+}
+
 #special-day-list {
     list-style-type: none; /* Remove default list styling */
     padding: 0; /* Remove default padding */
@@ -82,6 +100,21 @@ form button {
 }
 
 #special-day-list li {
+    margin-bottom: 1px; /* Add some space between list items */
+    border: 1px solid #ccc; /* Add a border around each list item */
+    padding: 10px; /* Add padding inside each list item */
+    background-color: #f9f9f9; /* Add a background color */
+    font-size: 12px;
+    border-radius: 10px;
+}
+
+#fluctuations-list {
+    list-style-type: none; /* Remove default list styling */
+    padding: 0; /* Remove default padding */
+    height: 1%;
+}
+
+#fluctuations-list li {
     margin-bottom: 1px; /* Add some space between list items */
     border: 1px solid #ccc; /* Add a border around each list item */
     padding: 10px; /* Add padding inside each list item */
@@ -127,6 +160,36 @@ form button {
 }
 
 #top-weeks-list li {
+    margin-bottom: 1px; /* Add some space between list items */
+    border: 1px solid #ccc; /* Add a border around each list item */
+    padding: 10px; /* Add padding inside each list item */
+    background-color: #f9f9f9; /* Add a background color */
+    font-size: 12px;
+    border-radius: 10px;
+}
+
+#holdings-list {
+    list-style-type: none; /* Remove default list styling */
+    padding: 0; /* Remove default padding */
+    height: 1%;
+}
+
+#holdings-list li {
+    margin-bottom: 1px; /* Add some space between list items */
+    border: 1px solid #ccc; /* Add a border around each list item */
+    padding: 10px; /* Add padding inside each list item */
+    background-color: #f9f9f9; /* Add a background color */
+    font-size: 12px;
+    border-radius: 10px;
+}
+
+#traded-list {
+    list-style-type: none; /* Remove default list styling */
+    padding: 0; /* Remove default padding */
+    height: 1%;
+}
+
+#traded-list li {
     margin-bottom: 1px; /* Add some space between list items */
     border: 1px solid #ccc; /* Add a border around each list item */
     padding: 10px; /* Add padding inside each list item */

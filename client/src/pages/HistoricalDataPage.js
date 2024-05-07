@@ -47,11 +47,13 @@ export default function PageC() {
 					if (listContainer) {
 						listContainer.innerHTML = '';
 					}
-					resJson.slice(0, 6).forEach(week => { 
-						const listItem = document.createElement('li');
-						listItem.textContent = `Year: ${week.year}, Week: ${week.week}, Difference: ${week.difference}, Tweet: ${week.tweet_text}`;
-						if (listContainer) {
-							listContainer.appendChild(listItem);
+					resJson.forEach(week => { 
+						if (week.date < currentDateTime.toISOString().replace('T', ' ').replace('Z', '')) {
+							const listItem = document.createElement('li');
+							listItem.textContent = `Date: ${week.date}, Year: ${week.year}, Week: ${week.week}, Difference: ${week.difference}, Tweet: ${week.tweet_text}`;
+							if (listContainer) {
+								listContainer.appendChild(listItem);
+							}
 						}
 					});
 				});
@@ -70,9 +72,10 @@ export default function PageC() {
 	return (
 		<>
 			<div className="headerContainer">
-				<Link to='/a' className="buttonLink">Game</Link>
-				<Link to='/b' className="buttonLink">Analytics</Link>
-				<Link to='/c' className="buttonLink">Historical Data</Link>
+				<Link to='/game' className="buttonLink">Game</Link>
+				<Link to='/analytics' className="buttonLink">Analytics</Link>
+				<Link to='/historical_data' className="buttonLink">Historical Data</Link>
+				<Link to='/past_transactions' className="buttonLink">Past Transactions</Link>
 			</div>
 
 			<div className="bars-container">

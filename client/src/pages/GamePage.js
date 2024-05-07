@@ -1,13 +1,13 @@
 import  '../styles.css';
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { LineChart, Line, XAxis, YAxis, Tooltip, Legend, ReferenceLine, ResponsiveContainer, CartesianGrid} from 'recharts';
+import { LineChart, Line, XAxis, YAxis, Tooltip, Legend, ReferenceLine, ResponsiveContainer, CartesianGrid } from 'recharts';
 import React, { useContext } from 'react';
 import { DateTimeContext } from '../components/commonDate';
 
 const config = require('../config.json');
 
-export default function PageA() {
+export default function GamePage() {
 	const [balance, setBalance] = useState(100000);
 	const [bitcoinBalance, setBitcoinBalance] = useState(0);
 	const [price, setPrice] = useState(0);
@@ -16,7 +16,6 @@ export default function PageA() {
 
 	const [authSide, setAuthSide] = useState(true); // false = register; true = login
 	const [loggedUser, setLoggedUser] = useState(null);
-	//const [currentDateTime, setCurrentDateTime] = useState(getRandomDateIn2021);
 	const { currentDateTime, setCurrentDateTime } = useContext(DateTimeContext);
 
 	//for graph
@@ -95,55 +94,8 @@ export default function PageA() {
 		setSellQuantity(parseInt(event.target.value));
 	};
 
-	/*
-	ORIGINAL TIME HANDLING CODE (in case of catastrophe)
-	
-	function getRandomDateIn2021() { // initializes time incrementing
-		const start = new Date('2021-01-01T00:00:00Z');
-		const end = new Date('2021-12-31T23:59:59Z');
-		return new Date(start.getTime() + Math.random() * (end.getTime() - start.getTime()));
-	}
-	const [currentDateTime, setCurrentDateTime] = useState(getRandomDateIn2021());
-
-	useEffect(() => { // time incrementing
-		function syncTime() {
-			const now = new Date(currentDateTime.getTime());
-			const msUntilNextMinute = 60000 - (now.getSeconds() * 1000 + now.getMilliseconds());
-			setTimeout(() => {
-				setCurrentDateTime(new Date(now.getTime() + 60000));
-				syncTime();
-			}, msUntilNextMinute);
-		}
-	
-		syncTime();
-		return () => clearTimeout(syncTime);
-	}, [currentDateTime]);
-	*/
-
-	/*
-	function getRandomDateIn2021() { // initializes time incrementing
-		const start = new Date('2021-01-01T00:00:00Z');
-		const end = new Date('2021-12-31T23:59:59Z');
-		return new Date(start.getTime() + Math.random() * (end.getTime() - start.getTime()));
-	}
-	// const [currentDateTime, setCurrentDateTime] = useState(getRandomDateIn2021());
-	*/
-
 	useEffect(() => { // time incrementing
 		fetchData(currentDateTime);
-		/*
-		function syncTime() {
-			const now = new Date(currentDateTime.getTime());
-			const msUntilNextMinute = 60000 - (now.getSeconds() * 1000 + now.getMilliseconds());
-			setTimeout(() => {
-				setCurrentDateTime(new Date(now.getTime() + 60000));
-				syncTime();
-			}, msUntilNextMinute);
-		}
-	
-		syncTime();
-		return () => clearTimeout(syncTime);
-		*/
 	}, [currentDateTime]);
 
 	function fetchData(dateTime) {
@@ -153,7 +105,7 @@ export default function PageA() {
 		fetch(url)
 			.then(response => {
 				if (!response.ok) {
-					throw new Error('Network response was not ok');
+					throw new Error('Bad network response');
 				}
 				return response.json();
 			})
@@ -193,34 +145,6 @@ export default function PageA() {
 				}
 			}, _ => {});
 	}, []);
-
-	/*
-	MORE ORIGINAL GRAPH/TIME HANDLING CODE
-
-	fetch(`http://${config.server_host}:${config.server_port}/past_info/${currentDateTime.toISOString()}$`)
-			.then(res => res.json())
-			.then(data => {
-				//setChartData(data.map(item => ({
-				//	date: item.btc_date,
-				//	price: parseFloat(item.close)
-				//})));
-				
-				const newData = data.map(item => {
-					const date = new Date(item.string_date);
-					const hour = `${date.getFullYear()}-${('0' + (date.getMonth() + 1)).slice(-2)}-${('0' + date.getDate()).slice(-2)} ${('0' + date.getHours()).slice(-2)}:00`;
-					return {
-						//date: date.toISOString().substring(0, 10),
-						date: item.minute_formatted,
-						price: parseFloat(item.close),
-						hour
-					};
-				});
-				setChartData(newData);	
-			});
-		
-		// return () => clearInterval(timerId);
-	}, [currentDateTime]);
-	*/
 
 	// handle changing login/register form
 	const authChangeHandle = (toLogin) => {
@@ -333,9 +257,10 @@ export default function PageA() {
 		<>
 			<div className="headerContainer">
 				<div style={{ fontWeight: 'bold', fontSize: '18px', margin: '10px 0' }}>Crypto Conquest</div>
-				<Link to='/a' className="buttonLink">Game</Link>
-				<Link to='/b' className="buttonLink">Analytics</Link>
-				<Link to='/c' className="buttonLink">Historical Data</Link>
+				<Link to='/game' className="buttonLink">Game</Link>
+				<Link to='/analytics' className="buttonLink">Analytics</Link>
+				<Link to='/historical_data' className="buttonLink">Historical Data</Link>
+				<Link to='/past_transactions' className="buttonLink">Past Transactions</Link>
 			</div>
 
             {/* Forms and user interaction components */}

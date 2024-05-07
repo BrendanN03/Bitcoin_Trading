@@ -42,8 +42,13 @@ the day/month/all-time and to show the player current holdings (of cash and of B
 <br><br>
 
 **/client/src**: This folder contains main source code for the React application
-- **/pages**: This folder contains for React components corresponding to the pages in the application
-	- placeholder
+- **/components**: This folder contains React components in general
+	- commonDate.js: [TODO]
+- **/pages**: This folder contains React components corresponding to the pages in the application
+	- AnalyticsPage.js: [TODO]
+	- GamePage.js: [TODO]
+	- HistoricalDataPage.js: [TODO]
+	- PastTransactionsPage.js: [TODO]
 - App.js: Holds the root component of the React application
 - config.json: Holds backend server connection information
 - index.js: Serves as the main JavaScript entry point to the application and stores the main DOM render call in React

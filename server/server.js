@@ -13,6 +13,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(cookieParser());
 
+// handle routing
 app.get('/trends/:datetime', routes.trends);
 app.get('/monthly_summary', routes.monthlySummary);
 app.get('/special_days/:month', routes.specialDays);
@@ -29,6 +30,7 @@ app.post('/logout', routes.logout);
 app.get('/session', routes.session);
 app.post('/transact', routes.transact);
 
+// start the server
 app.listen(config.server_port, () => {
 	console.log(`Server running at http://${config.server_host}:${config.server_port}/`)
 });

@@ -11,7 +11,7 @@ const connection = mysql.createConnection({
 });
 connection.connect((err) => err && console.log(err));
 
-// TODO: probably can do away with expiration
+// refresh the user's session cookie
 function refreshCookieData(expiration, sid, res, finals) {
 	connection.query(`
 		UPDATE session
@@ -181,17 +181,19 @@ const topWeeks = async function (req, res) {
 			SELECT
 				YEAR(bp.date) AS year,
 				WEEK(bp.date) AS week,
+				MIN(bp.date) AS date,
 				MAX(bp.open) - MIN(bp.open) AS difference
 			FROM bitcoin_prices bp
 			GROUP BY year, week
 		),
 		top_weeks AS (
-			SELECT wd.year, wd.week
+			SELECT wd.date, wd.year, wd.week
 			FROM weekly_differences wd
 			ORDER BY wd.difference DESC
 			LIMIT 10
 		)
 		SELECT DISTINCT
+			wd.date,
 			wd.year,
 			wd.week,
 			wd.difference,
@@ -215,7 +217,6 @@ const topWeeks = async function (req, res) {
 const dayTweets = async function (req, res) {
 	console.log(`[dayTweets] datetime: ${req.params.datetime} query params: ${JSON.stringify(req.query)}`);
 	
-	// TODO: might have to convert from url encoding to regular string
 	const input_datetime = req.params.datetime;
 	let limit = req.query.limit ?? 5;
 	limit = limit < 0 ? 999999 : limit;
@@ -306,7 +307,6 @@ const tweetActivity = async function (req, res) {
 const pastInfo = async function (req, res) {
 	console.log(`[pastInfo] date: ${req.params.date}`);
 
-	// TODO: might have to convert from url encoded string to regular string
 	const input_datetime = req.params.date;
 
 	connection.query(`
@@ -347,7 +347,7 @@ const totalTraded = async function (req, res) {
 			SUM(t.amount_traded) AS total_traded
 		FROM transaction t
 		JOIN user u ON t.user_id = u.id
-		WHERE u.username = '${req.params.user}'
+		WHERE u.username = BINARY '${req.params.user}'
 		GROUP BY transaction_type;
 	`, (err, data) => {
 		if (err) {
@@ -363,8 +363,7 @@ const totalTraded = async function (req, res) {
 const totalHoldings = async function (req, res) {
 	console.log(`[totalHoldings] date: ${req.params.date}`);
 
-	const input_date = req.params.date; // assuming it is formatted as YYYY-MM-DD
-	// TODO: but we dont have HH:MM:SS, the db ends up just using 00:00:00
+	const input_date = req.params.date;
 
 	connection.query(`
 		SELECT
@@ -392,7 +391,7 @@ const register = async function (req, res) {
 	connection.query(`
 		SELECT u.id
 		FROM user u
-		WHERE u.username = '${req.body.username}';
+		WHERE u.username = BINARY '${req.body.username}';
 	`, checkUserExistsHandler);
 
 	function checkUserExistsHandler(err, data) {
@@ -428,7 +427,7 @@ const login = async function (req, res) {
 	console.log(`[login] body: ${JSON.stringify(req.body)}`);
 
 	const now = new Date();
-	now.setTime(now.getTime() + 600000); // 10 minutes
+	now.setTime(now.getTime() + 21600000); // 6 hours 10 minutes
 	const expiration = now.toISOString().slice(0, 19).replace('T', ' ');
 
 	connection.query(`
@@ -436,8 +435,8 @@ const login = async function (req, res) {
 		FROM user u
 		LEFT JOIN session s ON u.id = s.user_id
 		WHERE
-			u.username = '${req.body.username}' AND
-			u.password = '${req.body.password}';
+			u.username = BINARY '${req.body.username}' AND
+			u.password = BINARY '${req.body.password}';
 	`, loginVerifyHandler);
 
 	function loginVerifyHandler(err, data) {
@@ -545,7 +544,7 @@ const session = async function (req, res) {
 			res.status(400).json({});
 		} else {
 			// the session is valid, so refresh it
-			now.setTime(now.getTime() + 600000); // 10 minutes
+			now.setTime(now.getTime() + 21600000); // 6 hours 10 minutes
 			const expiration = now.toISOString().slice(0, 19).replace('T', ' ');
 			refreshCookieData(expiration, req.cookies.sid, res, [
 				() => { res.status(200).json({ user: data[0].username, curr_btc: data[0].current_btc, curr_usd: data[0].current_usd }) },
@@ -563,7 +562,7 @@ const transact = function (req, res) {
 		FROM user u
 		JOIN session s ON u.id = s.user_id
 		WHERE
-			u.username = '${req.body.user}' AND
+			u.username = BINARY '${req.body.user}' AND
 			s.sid = ${req.cookies.sid};
 	`, transactUserIdHandler);
 
