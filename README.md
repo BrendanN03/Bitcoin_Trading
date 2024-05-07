@@ -1,13 +1,6 @@
 # Bitcoin Trading Game README
 ## Description
-Our application is a high-frequency Bitcoin trading game where the user starts with $100,000 (USD) and is then 
-presented the opportunity to buy or sell any feasible amount of Bitcoin every minute. The user will have the choice 
-to skip ahead in time (to essentially not buy or sell for that time), and they will be provided with the given day's 
-tweets (up to the current time) relating to Bitcoin as hints or indications to buy or sell. The goal will be to 
-maximize the value of the user's total Bitcoin/USD holdings by the end of the game. The target audience is individuals 
-interested in cryptocurrency and those intrigued by the concept of trading and investment strategies. It caters to 
-both beginners who want to learn more about how market dynamics can affect cryptocurrency values and seasoned traders 
-who want to test their skills against the simulated unpredictability of the crypto market.
+We have implemented buttons that the user will need to click to buy/sell. We have im- plemented sliders for the amount of money you want to buy/sell. The trend of Bitcoin price is displayed in a graph that continuously updates as time goes along. Daily tweets appear and disappear in our ANALYTICS page. This page also displays the number of recent predictive tweets by influential Twitter-users, as well as information on recent Bitcoin trading volumes and high activity days in the Bitcoin community that month. We also have a HISTORICAL DATA page containing information on previous weeks where Bitcoin prices were high volatile and on the average Bitcoin prices over the past months. We include text displays to show the player’s net profits/losses on the day/month/all-time and to show the player current holdings (dollars + Bitcoin).
 
 ## Key Features
 We will implement buttons that the user will need to click to trade/buy/sell. We will implement sliders/spins for the
@@ -43,12 +36,12 @@ the day/month/all-time and to show the player current holdings (of cash and of B
 
 **/client/src**: This folder contains main source code for the React application
 - **/components**: This folder contains React components in general
-	- commonDate.js: [TODO]
+	- commonDate.js: Creates a datetime as a global variable tha can be used in all pages.
 - **/pages**: This folder contains React components corresponding to the pages in the application
-	- AnalyticsPage.js: [TODO]
-	- GamePage.js: [TODO]
-	- HistoricalDataPage.js: [TODO]
-	- PastTransactionsPage.js: [TODO]
+	- GamePage.js: The main page that includes the game (graph, buy and sell buttons, login, etc.).
+	- AnalyticsPage.js: Page that contains queries for analytics.
+	- HistoricalDataPage.js: Page that contains queries for historical data.
+	- PastTransactionsPage.js: Page that contains information about current players and players' transactions.
 - App.js: Holds the root component of the React application
 - config.json: Holds backend server connection information
 - index.js: Serves as the main JavaScript entry point to the application and stores the main DOM render call in React
